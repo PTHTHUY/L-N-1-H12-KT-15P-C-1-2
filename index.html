@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiểm tra 15 phút - Hóa học 12</title>
+    <style>
+        :root {
+            --primary: #0f766e;
+            --primary-hover: #0d5f58;
+            --secondary: #0ea5e9;
+            --bg-color: #f0fdfa;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-light: #64748b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --border: #e2e8f0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; display: flex; justify-content: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 900px; background: var(--card-bg); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; position: relative; }
+        
+        /* Screens */
+        .screen { display: none; padding: 2rem; flex: 1; }
+        .screen.active { display: flex; flex-direction: column; }
+        
+        /* Header & Intro */
+        .header-title { text-align: center; color: var(--primary); font-size: 1.8rem; margin-bottom: 1.5rem; font-weight: 700; text-transform: uppercase; }
+        .intro-box { background: var(--bg-color); border: 1px solid var(--border); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; }
+        
+        /* Inputs */
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-main); }
+        .form-group input { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; transition: all 0.3s; }
+        .form-group input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1); }
+        
+        /* Buttons */
+        .btn { display: inline-block; padding: 0.8rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.3s; text-align: center; }
+        .btn:hover { background: var(--primary-hover); }
+        .btn:disabled { background: var(--text-light); cursor: not-allowed; }
+        .btn-outline { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
+        .btn-outline:hover { background: var(--bg-color); }
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-block { width: 100%; }
+        
+        /* Test Header */
+        .test-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: 2px solid var(--bg-color); margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px; }
+        .student-info { font-weight: 600; color: var(--primary); }
+        .part-badge { background: var(--secondary); color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.9rem; font-weight: bold; }
+        .timer { font-size: 1.2rem; font-weight: bold; background: var(--text-main); color: white; padding: 0.4rem 1rem; border-radius: 6px; display: flex; align-items: center; gap: 8px; }
+        .timer.warning-light { background: var(--warning); animation: pulse 2s infinite; }
+        .timer.warning-severe { background: var(--danger); animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        
+        /* Progress */
+        .progress-container { width: 100%; background: #e2e8f0; height: 8px; border-radius: 4px; margin-bottom: 1.5rem; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s ease; }
+        
+        /* Question Area */
+        .question-box { flex: 1; margin-bottom: 2rem; }
+        .question-text { font-size: 1.15rem; font-weight: 600; margin-bottom: 1.2rem; }
+        
+        /* Options - Part 1 */
+        .option-label { display: block; padding: 1rem; margin-bottom: 0.8rem; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .option-label:hover { background: var(--bg-color); }
+        .option-label input[type="radio"] { margin-right: 10px; transform: scale(1.2); }
+        .option-label.selected { border-color: var(--primary); background: rgba(15, 118, 110, 0.05); }
+        
+        /* Options - Part 2 (True/False) */
+        .tf-statement { border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+        .tf-text { font-weight: 500; margin-bottom: 0.8rem; }
+        .tf-controls { display: flex; gap: 1rem; }
+        .tf-btn { flex: 1; text-align: center; padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; }
+        .tf-btn.selected-true { background: var(--primary); color: white; border-color: var(--primary); }
+        .tf-btn.selected-false { background: var(--danger); color: white; border-color: var(--danger); }
+        
+        /* Options - Part 3 */
+        .sa-input { width: 100%; padding: 1rem; font-size: 1.2rem; border: 2px solid var(--border); border-radius: 8px; margin-top: 1rem; }
+        .sa-input:focus { outline: none; border-color: var(--primary); }
+        
+        /* Controls */
+        .test-controls { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 1.5rem; }
+        .nav-btns { display: flex; gap: 10px; }
+        .flag-btn { background: #f8fafc; color: var(--warning); border: 1px solid var(--border); }
+        .flag-btn.flagged { background: var(--warning); color: white; border-color: var(--warning); }
+        
+        /* Result & Review */
+        .result-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--bg-color); padding: 1.5rem; border-radius: 8px; text-align: center; border: 1px solid #ccfbf1; }
+        .stat-card h3 { font-size: 2rem; color: var(--primary); }
+        .review-item { border: 1px solid var(--danger); border-left: 5px solid var(--danger); padding: 1rem; border-radius: 6px; margin-bottom: 1rem; background: #fff5f5; }
+        .review-item.unanswered { border-color: var(--warning); border-left-color: var(--warning); background: #fffbeb; }
+        .correct-ans { color: var(--success); font-weight: bold; margin-top: 0.5rem; }
+        .wrong-ans { color: var(--danger); font-weight: bold; text-decoration: line-through; }
+        
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
+        .modal-box { background: white; padding: 2rem; border-radius: 8px; max-width: 400px; width: 90%; text-align: center; }
+        .modal-btns { display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; }
+        
+        #error-msg { color: var(--danger); font-size: 0.9rem; margin-bottom: 1rem; display: none; }
+        
+        @media(max-width: 600px) {
+            .test-header { flex-direction: column; align-items: flex-start; }
+            .test-controls { flex-wrap: wrap; gap: 10px; justify-content: center; }
+            .nav-btns { width: 100%; display: flex; justify-content: space-between; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- SETUP SCREEN -->
+    <div id="screen-setup" class="screen active">
+        <h1 class="header-title">KIỂM TRA ĐỊNH KỲ – HÓA HỌC 12</h1>
+        <div class="intro-box">
+            <p><strong>Cấu trúc bài thi (Tổng 20 phút):</strong></p>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 1rem;">
+                <li><strong>Phần 1:</strong> 18 câu trắc nghiệm (8 phút) - 4,5 điểm</li>
+                <li><strong>Phần 2:</strong> 4 câu Đúng/Sai (6 phút) - 4,0 điểm</li>
+                <li><strong>Phần 3:</strong> 6 câu trả lời ngắn (6 phút) - 1,5 điểm</li>
+            </ul>
+            <p style="color: var(--success); font-weight: bold; font-size: 0.95rem;">💡 MẸO: Làm nhanh phần trước, thời gian dư sẽ được cộng dồn cho phần sau!</p>
+            <p style="color: var(--danger); font-weight: bold; font-size: 0.95rem; margin-top: 5px;">⚠️ CHÚ Ý: Chuyển tab hoặc ẩn trình duyệt, câu hỏi đang làm sẽ bị khóa và tính điểm 0.</p>
+        </div>
+        <div id="error-msg">⚠️ Vui lòng nhập đầy đủ Họ và tên và Lớp trước khi bắt đầu.</div>
+        <div class="form-group">
+            <label>HỌ VÀ TÊN:</label>
+            <input type="text" id="input-name" placeholder="Nhập họ và tên học sinh...">
+        </div>
+        <div class="form-group">
+            <label>LỚP:</label>
+            <input type="text" id="input-class" placeholder="Nhập lớp (VD: 12A1)...">
+        </div>
+        <button class="btn btn-block" style="margin-top: 1rem; font-size: 1.2rem;" onclick="startTest()">🚀 BẮT ĐẦU KIỂM TRA</button>
+    </div>
+
+    <!-- TEST SCREEN -->
+    <div id="screen-test" class="screen">
+        <div class="test-header">
+            <div class="student-info">
+                <span id="display-name"></span> - <span id="display-class"></span>
+            </div>
+            <div class="part-badge" id="display-part">PHẦN 1</div>
+            <div class="timer" id="display-timer">⏱️ 08:00</div>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div style="margin-bottom: 10px; font-weight: bold; color: var(--text-light);">
+            Câu <span id="display-qnum">1</span> / <span id="display-qtotal">18</span> <span id="flag-indicator" style="display:none; color:var(--warning);">🚩 Đã đánh dấu</span>
+        </div>
+        
+        <div class="question-box" id="question-container">
+            <!-- Rendered by JS -->
+        </div>
+        
+        <div class="test-controls">
+            <button class="btn btn-outline flag-btn" id="btn-flag" onclick="toggleFlag()">🚩 Đánh dấu</button>
+            <div class="nav-btns">
+                <button class="btn btn-outline" id="btn-prev" onclick="navigate(-1)">⬅️ Câu trước</button>
+                <button class="btn" id="btn-next" onclick="navigate(1)">Câu tiếp ➡️</button>
+            </div>
+            <button class="btn btn-danger" id="btn-submit" style="display: none;" onclick="showSubmitConfirm()">📤 NỘP BÀI</button>
+        </div>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="screen-result" class="screen">
+        <h1 class="header-title">KẾT QUẢ BÀI KIỂM TRA</h1>
+        <div style="text-align: center; margin-bottom: 1.5rem; font-size: 1.2rem;">
+            <strong>Họ và tên:</strong> <span id="res-name"></span> | <strong>Lớp:</strong> <span id="res-class"></span>
+        </div>
+        
+        <div class="result-stats">
+            <div class="stat-card">
+                <div>TỔNG ĐIỂM</div>
+                <h3><span id="res-total-score">0.00</span>/10</h3>
+            </div>
+            <div class="stat-card">
+                <div>ĐIỂM TỪNG PHẦN</div>
+                <div style="font-size: 0.9rem; margin-top: 10px; text-align: left; padding-left: 1rem;">
+                    P1 (TN): <strong id="res-p1">0.00</strong>/4.5<br>
+                    P2 (ĐS): <strong id="res-p2">0.00</strong>/4.0<br>
+                    P3 (TLN): <strong id="res-p3">0.00</strong>/1.5
+                </div>
+            </div>
+            <div class="stat-card">
+                <div>THỐNG KÊ</div>
+                <div style="font-size: 0.9rem; margin-top: 10px; text-align: left; padding-left: 1rem;">
+                    Bỏ trống: <strong id="res-empty" style="color:var(--warning)">0</strong><br>
+                    Sai: <strong id="res-wrong" style="color:var(--danger)">0</strong>
+                </div>
+            </div>
+        </div>
+        
+        <button class="btn btn-block" onclick="showReview()">🔍 XEM LẠI CÁC CÂU LÀM SAI / CHƯA LÀM</button>
+    </div>
+
+    <!-- REVIEW SCREEN -->
+    <div id="screen-review" class="screen">
+        <h2 class="header-title">CHI TIẾT CÂU LÀM SAI / BỎ TRỐNG</h2>
+        <div id="review-container"></div>
+        <button class="btn btn-block" style="margin-top: 2rem;" onclick="location.reload()">🔄 LÀM BÀI MỚI</button>
+    </div>
+</div>
+
+<!-- MODAL CONFIRM SUBMIT -->
+<div class="modal-overlay" id="submit-modal">
+    <div class="modal-box">
+        <h3>Xác nhận nộp bài?</h3>
+        <p style="margin-top: 1rem; color: var(--text-light);">Bạn có chắc chắn muốn nộp bài? Sau khi nộp, bạn không thể thay đổi câu trả lời.</p>
+        <p id="missing-warning" style="margin-top: 0.5rem; color: var(--warning); font-weight: bold; display: none;">⚠️ Còn câu hỏi chưa hoàn thành!</p>
+        <div class="modal-btns">
+            <button class="btn btn-outline" onclick="closeModal()">QUAY LẠI KIỂM TRA</button>
+            <button class="btn btn-danger" onclick="forceSubmit()">NỘP BÀI</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// =====================================================
+// API LINK GỬI ĐIỂM VỀ GOOGLE SHEETS
+// =====================================================
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyuFivhGz6ylramXTPoLfXFUVBHNaZEdwGaTbW0p6vLxN58vy_7-CCRhJHIAJPTCIWOqQ/exec";
+
+// =====================================================
+// NGÂN HÀNG CÂU HỎI – DỮ LIỆU LẤY 100% TỪ FILE NGUỒN
+// =====================================================
+function fmt(str) {
+    if(!str) return "";
+    return str
+        .replace(/\$([^$]+)\$/g, (m, p1) => fmt(p1))
+        .replace(/_\{([^}]+)\}/g, '<sub>$1</sub>')
+        .replace(/\^\{([^}]+)\}/g, '<sup>$1</sup>')
+        .replace(/_(\d+)/g, '<sub>$1</sub>')
+        .replace(/\^(\d+)/g, '<sup>$1</sup>')
+        .replace(/([A-Z][a-z]?)(\d+)(?!%|kg|g|ml)/g, (m, p1, p2) => p1 + '<sub>' + p2 + '</sub>')
+        .replace(/(\))(\d+)/g, '$1<sub>$2</sub>')
+        .replace(/\\rightarrow/g, '→')
+        .replace(/\\ge/g, '≥')
+        .replace(/\\underline\{([^}]+)\}/g, '$1')
+        .replace(/\\mathbb\{([^}]+)\}/g, '$1')
+        .replace(/\\Lambda/g, 'A');
+}
+
+const rawMCQ = [
+    {q:"Chất không phải là ester là", opts:["HCOOC2H5","C2H5CHO","CH3COOCH=CH2","CH3-OOC-CH2-CH2-COO-C2H5"], ans:1}, 
+    {q:"Ester no, đơn chức, mạch hở có công thức tổng quát là", opts:["CnH2nO2 (n≥2)","CnH2n-2O2 (n≥2)","CnH2n+2O2 (n≥2)","CnH2nO (n≥2)"], ans:0}, 
+    {q:"Benzyl acetate là ester có mùi thơm của hoa nhài. Công thức của benzyl acetate là", opts:["C2H5COOC6H5","CH3COOC6H5","C6H5COOCH3","CH3COOCH2C6H5"], ans:3}, 
+    {q:"Tên gọi của ester CH3COOCH3 là", opts:["ethyl acetate","methyl propionate","methyl acetate","ethyl formate"], ans:2}, 
+    {q:"So với các acid, alcohol có cùng số nguyên tử carbon thì ester có nhiệt độ sôi", opts:["thấp hơn do khối lượng phân tử của ester nhỏ hơn nhiều.","thấp hơn do giữa các phân tử ester không tồn tại liên kết hydrogen.","cao hơn do giữa các phân tử ester có liên kết hydrogen bền vững.","cao hơn do khối lượng phân tử của ester lớn hơn nhiều."], ans:1}, 
+    {q:"Ester nào sau đây tác dụng với dung dịch NaOH thu được sodium acetate?", opts:["CH3COOC2H5","C2H5COOCH3","HCOOCH3","HCOOC2H5"], ans:0}, 
+    {q:"Thuỷ phân ester có công thức phân tử C4H8O2 (với xúc tác acid), thu được 2 sản phẩm X và Y. Từ X có thể điều chế trực tiếp ra Y. Vậy chất X là", opts:["methyl alcohol.","ethyl acetate.","formic acid.","ethyl alcohol."], ans:3}, 
+    {q:"Ester nào sau đây có phản ứng tráng bạc?", opts:["HCOOCH3","CH3COOCH3","CH3COOC2H5","C2H5COOCH3"], ans:0}, 
+    {q:"Đun nóng ester phenyl acetate với lượng dư dung dịch NaOH, thu được các sản phẩm hữu cơ là", opts:["CH3OH và C6H5ONa","CH3COOH và C6H5ONa","CH3COOH và C6H5OH","CH3COONa và C6H5ONa"], ans:3}, 
+    {q:"Số phát biểu đúng là (1) Một số ester có mùi thơm... (2) Chất béo là triester... (3) Chất béo tan tốt trong nước. (4) Mỡ, dầu làm xà phòng. (5) Phản ứng thuỷ phân ester môi trường acid luôn một chiều.", opts:["2","3","4","5"], ans:1}, 
+    {q:"Phát biểu nào sau đây đúng?", opts:["Chất béo là triester của glycerol với acid.","Chất béo là triester của glycerol với acid vô cơ.","Chất béo là triester của glycerol với acid béo.","Chất béo là triester của alcohol với acid béo."], ans:2}, 
+    {q:"Chất nào sau đây là acid béo?", opts:["Palmitic acid.","Acetic acid.","Formic acid.","Propionic acid."], ans:0}, 
+    {q:"Công thức stearic acid là", opts:["C2H5COOH.","CH3COOH.","C17H35COOH.","HCOOH."], ans:2}, 
+    {q:"Công thức phân tử của oleic acid là", opts:["C2H5COOH","HCOOOH","CH3COOH","C17H33COOH"], ans:3}, 
+    {q:"Công thức của tristearin là", opts:["(C2H5COO)3C3H5","(C17H35COO)3C3H5","(CH3COO)3C3H5","(HCOO)3C3H5"], ans:1}, 
+    {q:"Công thức của triolein là", opts:["(C17H33COO)3C3H5","(HCOO)3C3H5","(C2H5COO)3C3H5","(CH3COO)3C3H5"], ans:0}, 
+    {q:"Chất béo động vật hầu hết ở thể rắn do chứa", opts:["chủ yếu gốc acid béo không no.","glycerol trong phân tử.","chủ yếu gốc acid béo no.","gốc acid béo."], ans:2}, 
+    {q:"Chất béo có công thức nào sau đây là chất rắn ở điều kiện thường?", opts:["(C17H31COO)3C3H5","(C17H29COO)3C3H5","(C15H31COO)3C3H5","(C17H33COO)3C3H5"], ans:2},  
+    {q:"Đặc điểm chung của phản ứng thủy phân chất béo trong môi trường acid là", opts:["phản ứng xà phòng hóa.","phản ứng không thuận nghịch.","phản ứng cho - nhận electron.","phản ứng thuận nghịch."], ans:3}, 
+    {q:"Thủy phân hoàn toàn một lượng chất béo trong dung dịch NaOH (vừa đủ), thu được 1 mol glycerol và", opts:["3 mol muối của acid béo.","1 mol sodium acetate.","1 mol muối của acid béo.","3 mol sodium acetate."], ans:0}, 
+    {q:"Từ dầu thực vật làm thế nào để sản xuất được bơ nhân tạo?", opts:["Hydrogen hóa acid béo.","Đề hydrogen hóa chất béo lỏng.","Hydrogen hóa chất béo lỏng.","Xà phòng hóa chất béo lỏng."], ans:2}, 
+    {q:"Cho sơ đồ chuyển hóa: Triolein (+H2) -> E (+NaOH) -> T (+HCl) -> G. Tên gọi của G là", opts:["oleic acid.","linoleic acid.","stearic acid.","palmitic acid."], ans:2}, 
+    {q:"Trong các dầu dưới đây, dầu nào không chứa ester của acid béo và glycerol?", opts:["Dầu lạc (đậu phộng).","Dầu đậu nành.","Dầu dừa.","Dầu mỏ."], ans:3}, 
+    {q:"Carbohydrate là những hợp chất hữu cơ tạp chức và có công thức chung", opts:["Cn(H2O)m","CnH2O","CxHyOz","R(OH)x(CHO)y"], ans:0}, 
+    {q:"Carbohydrate nhất thiết phải chứa nhóm chức của", opts:["ketone.","aldehyde.","amine.","alcohol."], ans:3}, 
+    {q:"Chất nào sau đây là đồng phân của glucose?", opts:["Tinh bột.","Fructose.","Cellulose.","Saccharose."], ans:1}, 
+    {q:"Chất nào sau đây thuộc loại monosaccharide?", opts:["Saccharose.","Cellulose.","Tinh bột.","Glucose."], ans:3}, 
+    {q:"Carbohydrate nào sau đây thuộc loại polysaccharide?", opts:["Saccharose.","Cellulose.","Fructose.","Glucose."], ans:1}, 
+    {q:"Glucose là một loại monosaccharide có nhiều trong quả nho chín. Công thức phân tử của glucose là", opts:["C2H4O2","(C6H10O5)n","C12H22O11","C6H12O6"], ans:3}, 
+    {q:"Fructose là một loại monosaccharide có nhiều trong mật ong. Công thức phân tử của fructose là", opts:["C6H12O6","(C6H10O5)n","C2H4O2","C12H22O11"], ans:0}, 
+    {q:"Dung dịch nào sau đây có phản ứng tráng bạc?", opts:["Methyl acetate.","Glycine.","Fructose.","Saccharose."], ans:2}, 
+    {q:"Để tráng một lớp bạc lên ruột phích, người ta cho chất X phản ứng với dư AgNO3/NH3, t. Chất X là", opts:["tinh bột.","ethyl acetate.","saccharose.","glucose."], ans:3}, 
+    {q:"Carbohydrate X không tham gia thủy phân trong acid và X làm mất màu nước bromine. X là", opts:["Fructose.","Tinh bột.","Glucose.","Saccharose."], ans:2}, 
+    {q:"Phản ứng nào sau đây chứng tỏ glucose có dạng mạch vòng?", opts:["Cu(OH)2","Nước bromine.","CH3OH/HCl.","Dung dịch AgNO3/NH3, t."], ans:2}, 
+    {q:"Số phát biểu đúng là: (1) Glu, Fruc không thủy phân (2) Phân biệt bằng brom (3) Carbo là tạp chức (4) Chất béo ko phải carbo", opts:["1.","2.","3.","4."], ans:3}, 
+    {q:"Đường mía là loại đường nào sau đây?", opts:["Maltose.","Glucose.","Fructose.","Saccharose."], ans:3}, 
+    {q:"Chất thuộc loại disaccharide là", opts:["glucose.","saccharose.","cellulose.","fructose."], ans:1}, 
+    {q:"Phân tử saccharose được tạo bởi", opts:["một gốc glu và một gốc mal.","hai gốc fructose.","một gốc glu và một gốc fruc.","hai gốc glucose."], ans:2}, 
+    {q:"Carbohydrate nào dưới đây không có nhóm –OH hemiacetal hoặc nhóm –OH hemiketal?", opts:["Maltose.","Fructose.","Saccharose.","Glucose."], ans:2}, 
+    {q:"Saccharose tham gia phản ứng hóa học nào sau đây?", opts:["Phản ứng tráng gương.","Phản ứng thủy phân.","Phản ứng xà phòng hóa.","Phản ứng ester hóa."], ans:1}, 
+    {q:"Khi thuỷ phân saccharose, sản phẩm thu được là", opts:["glucose và fructose.","glucose.","fructose.","tinh bột."], ans:0}, 
+    {q:"Để phân biệt saccharose và glucose người ta dùng", opts:["dung dịch H2SO4 loãng.","dung dịch NaOH.","dung dịch AgNO3/NH3.","Na kim loại."], ans:2}, 
+    {q:"Phản ứng đặc trưng của maltose là", opts:["phản ứng với dung dịch NaOH.","phản ứng màu với iodine.","phản ứng thủy phân tạo ra glucose.","phản ứng lên men trực tiếp tạo ra ethanol."], ans:2}, 
+    {q:"Điểm giống nhau về cấu tạo giữa tinh bột và cellulose là", opts:["được tạo nên từ nhiều gốc fructose.","được tạo nên từ nhiều gốc glucose.","được tạo nên từ nhiều phân tử glucose.","được tạo nên từ nhiều phân tử saccharose."], ans:1}, 
+    {q:"Y là polysaccharide có trong tinh bột và cấu trúc mạch không phân nhánh. Tên gọi của Y là", opts:["amylopectin.","glucose.","saccharose.","amylose."], ans:3}, 
+    {q:"Carbohydrate chứa đồng thời liên kết a-1,4-glycoside và liên kết a-1,6-glycoside trong phân tử là", opts:["tinh bột.","cellulose.","saccharose.","fructose."], ans:0}, 
+    {q:"Cho một số tính chất: có dạng sợi (1); tan trong nước (2); tan trong nước Schweizer (3); phản ứng với nitric acid đặc (4); tham gia tráng bạc (5); bị thủy phân (6). Tính chất của cellulose là", opts:["(3), (4), (5) và (6).","(1), (3), (4) và (6).","(1), (2), (3) và (4).","(2), (3), (4) và (5)."], ans:1}, 
+    {q:"Tinh bột, cellulose, saccharose đều có khả năng tham gia phản ứng", opts:["hoà tan Cu(OH)2.","trùng ngưng.","tráng gương.","thủy phân."], ans:3}, 
+    {q:"Ở nhiệt độ thường, nhỏ vài giọt dung dịch iodine vào hồ tinh bột thấy xuất hiện màu", opts:["vàng.","xanh tím.","hồng.","nâu đỏ."], ans:1}, 
+    {q:"Chất X tạo thành trong cây xanh nhờ quang hợp. Thủy phân hoàn toàn X thu được Y. Y có nhiều trong quả nho chín. Hai chất X và Y lần lượt là", opts:["tinh bột và glucose.","cellulose và saccharose.","cellulose và fructose.","tinh bột và saccharose."], ans:0} 
+];
+
+const rawTF = [
+    {q:"Isopropyl formate là một ester có trong cà phê Arabica.", sts:[{s:"Công thức của isopropyl formate là HCOOCH(CH3)2",a:1},{s:"Isopropyl formate là ester không no (có 1 C=C), đơn chức.",a:0},{s:"Phần trăm khối lượng oxygen trong isopropyl formate là 37,5%.",a:0},{s:"Isopropyl formate được điều chế từ propyl alcohol và formic acid.",a:0}]},
+    {q:"Khi thay thế nhóm OH ở nhóm carboxyl bằng nhóm –OR' thì được ester.", sts:[{s:"Ester tạo bởi carboxylic acid không no (1C=C), đơn chức, hở và alcohol no, đơn chức: CnH2n-2O2 (n ≥ 3).",a:0},{s:"(HCOO)2C2H4 là ester no, hai chức, mạch hở.",a:1},{s:"Ester hai chức, tạo bởi oxalic acid và ethyl alcohol có công thức là: (COOC2H5)2.",a:1},{s:"Có hai đồng phân ester ứng với công thức phân tử C3H6O2.",a:1}]},
+    {q:"So sánh nhiệt độ sôi của các chất.", sts:[{s:"Ester HCOOCH3 có nhiệt độ sôi thấp nhất do không tạo được liên kết hydrogen.",a:1},{s:"Phân tử CH3COOH có nhiệt độ sôi cao nhất do dạng dimer hoặc dạng liên phân tử bền.",a:1},{s:"Nhiệt độ sôi tăng dần theo thứ tự: CH3CH2CH2OH < HCOOCH3 < CH3COOH.",a:0},{s:"Các ester có nhiệt độ sôi cao hơn nhiệt độ sôi của carboxylic acid và alcohol cùng C.",a:0}]},
+    {q:"Tiến hành thí nghiệm thủy phân ethyl acetate trong H2SO4 và NaOH.", sts:[{s:"Sau bước 2: Chất lỏng trong cả hai ống nghiệm đều phân thành hai lớp.",a:1},{s:"Sau bước 3: Ở hai ống nghiệm đều thu được sản phẩm giống nhau.",a:0},{s:"Sau bước 3: Ống nghiệm (1) thể tích lớp trên giảm. Ống nghiệm (2) tạo hỗn hợp đồng nhất.",a:1},{s:"Phản ứng thuỷ phân ester trong môi trường acid xảy ra tốt hơn môi trường kiềm.",a:0}]},
+    {q:"Ester bị thủy phân trong môi trường acid hoặc base.", sts:[{s:"Ester bị thủy phân trong môi trường acid là phản ứng thuận nghịch tạo thành carboxylic acid và alcohol.",a:0},{s:"Ester bị thủy phân trong môi trường base là phản ứng một chiều tạo thành muối của carboxylic acid và alcohol.",a:0},{s:"Thủy phân CH3COOC2H5 trong môi trường NaOH thu được CH3COONa và C2H5OH.",a:1},{s:"Thủy phân CH3COOCH=CH2 trong môi trường acid thu được CH3COOH và alcohol CH2=CHOH.",a:0}]},
+    {q:"Ester bị thủy phân khi đun nóng với dung dịch kiềm gọi là xà phòng hóa.", sts:[{s:"Phản ứng thủy phân ester trong môi trường base luôn thu được muối của carboxylic acid và alcohol.",a:0},{s:"Thủy phân ester methyl propionate trong dung dịch NaOH thu được muối C2H5COONa.",a:1},{s:"Ester CH3COOC6H5 trong dung dịch NaOH thu được một muối và một alcohol.",a:0},{s:"Thủy phân ester X trong NaOH thu được HCOONa và CH3CHO. Tên gọi của X là vinyl formate.",a:1}]},
+    {q:"Acid béo là carboxylic acid đơn chức, mạch carbon dài.", sts:[{s:"Palmitic acid (C15H31COOH) và stearic acid (C17H35COOH) là acid béo no.",a:1},{s:"Oleic acid (C17H33COOH) là acid béo, không no, chứa hai liên kết π.",a:1},{s:"Linoleic acid là acid béo, không no có công thức phân tử C17H31COOH.",a:1},{s:"Acid béo omega-3 và omega-6 có số liên kết đôi lần lượt là 3 và 6.",a:0}]},
+    {q:"Chất béo là ester nên có phản ứng thủy phân giống các ester khác.", sts:[{s:"Phản ứng thủy phân chất béo trong môi trường acid là thuận nghịch, kiềm là một chiều.",a:1},{s:"Thủy phân chất béo trong môi trường kiềm luôn thu được carboxylic acid và glycerol.",a:0},{s:"Thủy phân chất béo X thu được C17H35COONa và glycerol. Tên của X là tristearin.",a:1},{s:"Cho 1 mol triglyceride X tác dụng NaOH dư, thu 1 mol glycerol, 1 mol sodium palmitate và 2 mol sodium stearate. X là C52H96O6.",a:0}]},
+    {q:"Cho 1 mol triglyceride X tác dụng với dung dịch NaOH dư, thu được 1 mol glycerol, 1 mol sodium palmitate và 2 mol sodium oleate.", sts:[{s:"Phân tử X có 5 liên kết π.",a:1},{s:"Có 2 đồng phân cấu tạo thỏa mãn tính chất của X.",a:1},{s:"Công thức phân tử chất X là C52H96O6.",a:0},{s:"1 mol X làm mất màu tối đa 2 mol Br2 trong dung dịch.",a:1}]},
+    {q:"Nhiều loại bơ thực vật được tạo ra bởi quá trình hydrogen hóa một phần dầu thực vật.", sts:[{s:"Trong công nghiệp, phản ứng này để chuyển hóa chất béo lỏng thành rắn và ngược lại.",a:0},{s:"1 mol triolein phản ứng tối đa với 3 mol H2 tạo thành tristearin.",a:1},{s:"Chất béo không no bị oxi hóa chậm bởi oxygen tạo chất mùi khó chịu (ôi).",a:1},{s:"1 mol triglyceride X phản ứng tối đa với 4 mol H2. Phân tử X chứa 4 liên kết π.",a:0}]},
+    {q:"Tiến hành thí nghiệm với saccharose và Cu(OH)2.", sts:[{s:"Sau bước 2, kết tủa tan tạo thành dung dịch màu xanh lam.",a:1},{s:"Thí nghiệm trên chứng minh saccharose có tính chất của aldehyde.",a:0},{s:"Ở bước 2, nếu thay saccharose bằng maltose thì hiện tượng xảy ra tương tự.",a:1},{s:"Sau bước 2, nếu đun nóng thu được kết tủa Cu2O màu đỏ gạch.",a:0}]},
+    {q:"Thủy phân saccharose, thu được X và Y. Chất X có trong máu người nồng độ 4,4-7,2 mmol/L.", sts:[{s:"Y bị thủy phân trong môi trường kiềm.",a:0},{s:"X không có phản ứng tráng bạc.",a:0},{s:"X có phân tử khối bằng 180.",a:1},{s:"Y không tan trong nước.",a:0}]},
+    {q:"Chất X làm thuốc tăng lực, Y làm nguyên liệu bánh kẹo. X được điều chế bằng cách thủy phân Y.", sts:[{s:"X có phân tử khối là 180.",a:1},{s:"Y tác dụng được với thuốc thử Tollens.",a:0},{s:"X tác dụng được với nước bromine thu được gluconic acid.",a:1},{s:"Ở nhiệt độ thường, X và Y đều hòa tan được Cu(OH)2 thu dung dịch xanh lam.",a:1}]},
+    {q:"Chất rắn X vị ngọt, có trong mía. Trong công nghiệp, X chuyển hóa thành Y tráng gương.", sts:[{s:"X là saccharose, thủy phân X trong môi trường acid thu được Y (glucose) và fructose.",a:1},{s:"Đồng phân của X là maltose. Thủy phân maltose cũng thu được Y và fructose.",a:0},{s:"X và Y đều thuộc nhóm disaccharide.",a:0},{s:"Trong dung dịch, Y tồn tại chủ yếu ở dạng mạch hở.",a:0}]},
+    {q:"Tinh bột là nguồn cung cấp năng lượng và dinh dưỡng.", sts:[{s:"Tinh bột có công thức phân tử (C6H10O5)n.",a:1},{s:"Tinh bột là polymer thiên nhiên, gồm amylose và amylopectin.",a:1},{s:"Phân tử amylopectin có mạch phân nhánh cấu tạo từ a-glucose qua liên kết a-1,4 và a-1,6.",a:1},{s:"Phân tử amylose cấu tạo từ a-glucose liên kết qua liên kết a-1,6-glycoside.",a:0}]},
+    {q:"Cellulose là polymer thiên nhiên, có công thức phân tử là (C6H10O5)n.", sts:[{s:"Cellulose là đồng phân cấu tạo của tinh bột.",a:0},{s:"Phân tử cellulose cấu tạo từ β-glucose liên kết qua liên kết β-1,4-glycoside, chuỗi không nhánh.",a:1},{s:"Mỗi đơn vị glucose cấu thành phân tử cellulose có ba nhóm hydroxy, viết là [C6H7O2(OH)3]n.",a:1},{s:"Phân tử cellulose cũng có mạch phân nhánh tương tự amylopectin.",a:0}]},
+    {q:"Thí nghiệm cellulose và nước Schweizer.", sts:[{s:"Ở bước 1, thu được kết tủa màu xanh (Cu(OH)2).",a:1},{s:"Ở bước 3, cellulose tan trong nước Schweizer thu được dung dịch nhớt màu xanh lam.",a:1},{s:"Ở bước 3, nếu thay cellulose bằng tinh bột thì hiện tượng xảy ra tương tự.",a:0},{s:"Cellulose tan được trong nước Schweizer và trong các dung môi hữu cơ thông thường.",a:0}]},
+    {q:"Carbohydrate thường có công thức chung là Cn(H2O)m.", sts:[{s:"Công thức chung carbohydrate Cn(H2O)m giá trị n và m phải khác nhau.",a:0},{s:"Glucose và fructose thuộc loại monosaccharide.",a:1},{s:"Acetic acid có công thức phân tử C2H4O2 hay C2(H2O)2 là carbohydrate.",a:0},{s:"Carbohydrate luôn chứa nhóm chức alcohol và aldehyde.",a:0}]},
+    {q:"Fructose tồn tại đồng thời ở dạng mạch hở và mạch vòng.", sts:[{s:"Ở dạng mạch hở, phân tử fructose có năm nhóm hydroxy và một nhóm aldehyde.",a:0},{s:"Nhóm –OH ở vị trí số 2 trong fructose dạng mạch vòng gọi là –OH hemiketal.",a:1},{s:"Fructose có tính chất của polyalcohol và ketone.",a:1},{s:"Fructose không bị oxi hóa bởi thuốc thử Tollens và bởi Cu(OH)2 trong môi trường kiềm.",a:0}]},
+    {q:"Thí nghiệm glucose với thuốc thử Tollens.", sts:[{s:"Sản phẩm hữu cơ thu được sau bước 2 là gluconic acid.",a:0},{s:"Thí nghiệm trên chứng minh glucose có tính chất của aldehyde.",a:1},{s:"Trong phản ứng ở bước 2, glucose đóng vai trò là chất oxi hóa.",a:0},{s:"Fructose có nhóm chức ketone, vì vậy không tham gia phản ứng với thuốc thử Tollens.",a:0}]},
+    {q:"Thí nghiệm glucose và nước bromine.", sts:[{s:"Sau bước 2, nước bromine bị mất màu.",a:1},{s:"Thí nghiệm trên chứng minh glucose có tính chất của aldehyde.",a:1},{s:"Ở bước 2, nếu thay glucose bằng fructose thì nước bromine vẫn bị mất màu.",a:0},{s:"Trong phản ứng ở bước 2, glucose đóng vai trò là chất khử.",a:1}]}
+];
+
+const rawSA_Calc = [
+    {q:"Thủy phân hoàn toàn ester X trong dung dịch NaOH, thu được ethanol và sodium acrylate. Phân tử khối của X là", a:"100"},
+    {q:"Xà phòng hóa hoàn toàn triglyceride X trong dung dịch NaOH dư, thu được glycerol, sodium oleate, sodium stearate và sodium palmitate. Phân tử khối của X là", a:"860"},
+    {q:"Xà phòng hóa 1 mol triglyceride X bằng NaOH thu được glycerol, 2 mol sodium oleate và 1 mol sodium palmitate. Hydrogen hóa hoàn toàn 1 mol X cần tối đa a mol H2. Giá trị của a là", a:"2"},
+    {q:"Hydrogen hóa hoàn toàn 1 mol triglyceride X cân 6 mol H2 thu được chất hữu cơ Y. Thủy phân hoàn toàn Y bằng dung dịch NaOH, chỉ thu được glycerol và sodium stearate. Phân tử khối của X là", a:"878"},
+    {q:"Thủy phân hoàn toàn 0,5 mol saccharose thu được dung dịch X. Cho X phản ứng hoàn toàn với dung dịch AgNO3/NH3 dư, thu được a mol Ag. Giá trị của a là", a:"2,0"},
+    {q:"Từ m kg mùn cưa chứa 50% cellulose về khối lượng, sản xuất được 80 kg glucose. Biết hiệu suất toàn bộ quá trình là 80%. Giá trị của m là", a:"180"},
+    {q:"Thủy phân 162 g tinh bột để sản xuất glucose. Biết hiệu suất của quá trình thủy phân là 80%. Khối lượng glucose thực tế thu được là", a:"144"}
+];
+
+const rawSA_Theory = [
+    {q:"Số đồng phân ester có công thức phân tử C3H6O2 là", a:"2"},
+    {q:"Số đồng phân ester có công thức phân tử C4H8O2 là", a:"4"},
+    {q:"Số hợp chất đơn chức, là đồng phân cấu tạo của nhau, có cùng công thức phân tử C4H8O2 và đều tác dụng được với dung dịch NaOH là", a:"6"},
+    {q:"Cho các hợp chất: CH3COOC2H5; HCOOCH3; CH3COOH; HCOOC2H5; C6H5COOCH3; HOCH2CH2CHO. Số hợp chất ester trong dãy là", a:"4"},
+    {q:"Đun hỗn hợp glycerol với stearic acid và oleic acid, xúc tác H2SO4 đặc. Số triester tối đa thu được là (không tính đồng phân quang học)", a:"6"},
+    {q:"Khi xà phòng hóa triglyceride X bằng dung dịch NaOH dư, đun nóng, thu được glycerol, sodium oleate, sodium stearate và sodium palmitate. Số đồng phân cấu tạo của X là", a:"3"},
+    {q:"Cho triolein lần lượt vào các ống nghiệm chứa: Na, Cu(OH)2, CH3OH (không xúc tác), nước brom và NaOH đun nóng. Số trường hợp xảy ra phản ứng là", a:"2"},
+    {q:"Số carbohydrate thuộc nhóm polysaccharide trong dãy: glucose, fructose, maltose, saccharose, tinh bột, cellulose là", a:"2"},
+    {q:"Số carbohydrate thuộc nhóm disaccharide trong dãy: glucose, fructose, maltose, saccharose, tinh bột, cellulose là", a:"2"},
+    {q:"Cho các chất: glucose, fructose, triolein, methyl acrylate, saccharose, ethyl formate, formic acid, ethanal, acetic acid. Số chất tác dụng được với dung dịch AgNO3/NH3 dư tạo bạc là", a:"5"},
+    {q:"Tổng số nhóm –OH hemiacetal trong một phân tử maltose mạch vòng là", a:"1"},
+    {q:"Cho các chất: saccharose, glucose, fructose, ethyl formate, formic acid và ethanal. Số chất có khả năng phản ứng với Cu(OH)2 ở điều kiện thường là", a:"4"},
+    {q:"Cho các tính chất: (1) Dạng sợi (2) Tan trong nước (3) Tan trong Schweizer (4) Phản ứng HNO3 đặc (5) Tráng bạc (6) Thủy phân. Số tính chất đúng của cellulose là", a:"4"},
+    {q:"Số phản ứng đặc trưng được xét đối với tinh bột trong chương trình THPT là (trong số tráng bạc, với I2, với Cu(OH)2, thủy phân, ester hóa)", a:"2"}
+];
+
+// --- HỆ THỐNG TRẠNG THÁI GAME ---
+let gameState = {
+    name: '',
+    className: '',
+    currentPart: 1, 
+    partOrder: [], // Hỗ trợ xáo trộn P1, P2
+    currentOrderIndex: 0,
+    timeLeft: 0,
+    carriedOverTime: 0, 
+    timerInterval: null,
+    answers: {},
+    flags: {},
+    lockedQuestions: [], // Chống gian lận: mảng chứa ID câu bị khóa
+    testData: { p1: [], p2: [], p3: [] },
+    currentIndex: 0
+};
+
+// Hàm trộn mảng
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+// Lấy câu hỏi ngẫu nhiên không lặp lại ngay lập tức
+function getQuestions(bank, count, bankId) {
+    let history = JSON.parse(localStorage.getItem('chem12_history_' + bankId) || '[]');
+    let available = bank.map((v, i) => i).filter(i => !history.includes(i));
+    
+    if (available.length < count) {
+        history = [];
+        available = bank.map((v, i) => i);
+    }
+    
+    shuffleArray(available);
+    let selectedIndices = available.slice(0, count);
+    
+    history = history.concat(selectedIndices);
+    localStorage.setItem('chem12_history_' + bankId, JSON.stringify(history));
+    
+    return selectedIndices.map(i => bank[i]);
+}
+
+// Khởi tạo bài thi
+function startTest() {
+    let name = document.getElementById('input-name').value.trim();
+    let cls = document.getElementById('input-class').value.trim();
+    if(!name || !cls) {
+        document.getElementById('error-msg').style.display = 'block';
+        return;
+    }
+    
+    gameState.name = name;
+    gameState.className = cls;
+    gameState.lockedQuestions = []; // Reset dữ liệu khóa
+    
+    // Ngẫu nhiên hóa thứ tự phần 1 và phần 2, phần 3 cố định ở cuối
+    gameState.partOrder = Math.random() < 0.5 ? [1, 2, 3] : [2, 1, 3];
+    gameState.currentOrderIndex = 0;
+    
+    // Cấu trúc bài mới
+    let p1_raw = getQuestions(rawMCQ, 18, 'mcq');
+    gameState.testData.p1 = p1_raw.map((q, idx) => {
+        let opts = q.opts.map((optTxt, i) => ({ text: optTxt, isCorrect: i === q.ans }));
+        shuffleArray(opts);
+        return { id: 'p1_' + idx, text: q.q, options: opts, type: 'mc' };
+    });
+    
+    let p2_raw = getQuestions(rawTF, 4, 'tf');
+    gameState.testData.p2 = p2_raw.map((q, idx) => {
+        return { id: 'p2_' + idx, text: q.q, statements: q.sts, type: 'tf' };
+    });
+    
+    let p3_calc = getQuestions(rawSA_Calc, 2, 'sa_calc');
+    let p3_theory = getQuestions(rawSA_Theory, 4, 'sa_theory');
+    let p3_raw = p3_calc.concat(p3_theory);
+    shuffleArray(p3_raw); // Trộn đều câu tính toán và lý thuyết
+    
+    gameState.testData.p3 = p3_raw.map((q, idx) => {
+        return { id: 'p3_' + idx, text: q.q, correct: q.a, type: 'sa' };
+    });
+    
+    document.getElementById('screen-setup').classList.remove('active');
+    document.getElementById('screen-test').classList.add('active');
+    document.getElementById('display-name').innerText = name;
+    document.getElementById('display-class').innerText = cls;
+    
+    gameState.carriedOverTime = 0; // Đảm bảo lúc bắt đầu dư bằng 0
+    startPart(gameState.partOrder[0]);
+}
+
+// Bắt đầu 1 phần mới
+function startPart(partNum) {
+    gameState.currentPart = partNum;
+    gameState.currentOrderIndex = gameState.partOrder.indexOf(partNum);
+    gameState.currentIndex = 0;
+    
+    // 8m (480s), 6m (360s), 6m (360s) (Gắn cứng thời gian theo ID phần thi, bất kể thứ tự)
+    let timeMap = {1: 480, 2: 360, 3: 360}; 
+    gameState.timeLeft = timeMap[partNum] + gameState.carriedOverTime;
+    gameState.carriedOverTime = 0; 
+    
+    let badge = document.getElementById('display-part');
+    if(partNum === 1) badge.innerText = "PHẦN 1 (TRẮC NGHIỆM 4 LỰA CHỌN)";
+    if(partNum === 2) badge.innerText = "PHẦN 2 (TRẮC NGHIỆM ĐÚNG/SAI)";
+    if(partNum === 3) badge.innerText = "PHẦN 3 (TRẢ LỜI NGẮN)";
+    
+    if(gameState.timerInterval) clearInterval(gameState.timerInterval);
+    updateTimerDisplay();
+    gameState.timerInterval = setInterval(timerTick, 1000);
+    
+    renderQuestion();
+}
+
+function timerTick() {
+    gameState.timeLeft--;
+    updateTimerDisplay();
+    
+    if (gameState.timeLeft <= 0) {
+        clearInterval(gameState.timerInterval);
+        autoAdvancePart();
+    }
+}
+
+function updateTimerDisplay() {
+    let t = gameState.timeLeft;
+    let m = Math.floor(t / 60);
+    let s = t % 60;
+    let timerEl = document.getElementById('display-timer');
+    timerEl.innerText = `⏱️ ${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    
+    timerEl.className = "timer";
+    if (t > 0 && t <= 10) timerEl.classList.add('warning-severe');
+    else if (t > 0 && t <= 60) timerEl.classList.add('warning-light');
+}
+
+function autoAdvancePart() {
+    alert(`Đã hết thời gian Phần ${gameState.currentPart}! Tự động chuyển phần.`);
+    gameState.carriedOverTime = 0; // Hết giờ thì không có thời gian dư
+    if (gameState.currentOrderIndex < 2) {
+        startPart(gameState.partOrder[gameState.currentOrderIndex + 1]);
+    } else {
+        calculateScore();
+    }
+}
+
+// Render câu hỏi
+function renderQuestion() {
+    let p = gameState.currentPart;
+    let qArray = gameState.testData['p' + p];
+    let qData = qArray[gameState.currentIndex];
+    
+    // Kiểm tra câu hỏi có đang bị khóa do gian lận không
+    let isLocked = gameState.lockedQuestions.includes(qData.id);
+    
+    document.getElementById('display-qnum').innerText = (gameState.currentIndex + 1);
+    document.getElementById('display-qtotal').innerText = qArray.length;
+    
+    let pct = ((gameState.currentIndex) / qArray.length) * 100;
+    document.getElementById('progress-bar').style.width = pct + "%";
+    
+    // Cờ đánh dấu
+    let btnFlag = document.getElementById('btn-flag');
+    let flagInd = document.getElementById('flag-indicator');
+    if (gameState.flags[qData.id]) {
+        btnFlag.classList.add('flagged');
+        btnFlag.innerText = "🚩 Đã đánh dấu";
+        flagInd.style.display = "inline";
+    } else {
+        btnFlag.classList.remove('flagged');
+        btnFlag.innerText = "🚩 Đánh dấu";
+        flagInd.style.display = "none";
+    }
+    
+    let container = document.getElementById('question-container');
+    let html = `<div class="question-text">${fmt(qData.text)}</div>`;
+    
+    if (isLocked) {
+        html += `<div style="color: var(--danger); font-weight: bold; margin-bottom: 1rem; padding: 1rem; background: #fee2e2; border-radius: 8px;">
+                    ⛔ Câu hỏi này đã bị khóa do bạn thoát khỏi màn hình làm bài!
+                 </div>`;
+    }
+    
+    if (p === 1) {
+        let savedAns = gameState.answers[qData.id];
+        qData.options.forEach((opt, i) => {
+            let isChecked = savedAns === opt.text ? "checked" : "";
+            let isSelected = savedAns === opt.text ? "selected" : "";
+            let letter = ['A','B','C','D'][i];
+            let disabledAttr = isLocked ? "disabled" : "";
+            
+            // --- MINIMAL PATCH BẮT ĐẦU ---
+            let safeText = opt.text.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            let clickEvent = isLocked ? "" : `onclick="selectMCQ('${qData.id}', '${safeText}', this)"`;
+            // --- MINIMAL PATCH KẾT THÚC ---
+            
+            let styleAttr = isLocked ? "cursor:not-allowed; opacity:0.6;" : "";
+            
+            html += `
+                <label class="option-label ${isSelected}" ${clickEvent} style="${styleAttr}">
+                    <input type="radio" name="q_${qData.id}" value="${i}" ${isChecked} ${disabledAttr}>
+                    <strong>${letter}.</strong> ${fmt(opt.text)}
+                </label>`;
+        });
+    } 
+    else if (p === 2) {
+        if (!gameState.answers[qData.id]) gameState.answers[qData.id] = {};
+        let savedAns = gameState.answers[qData.id];
+        
+        ['a','b','c','d'].forEach((letter, i) => {
+            let st = qData.statements[i];
+            let val = savedAns[letter];
+            let clsT = val === 1 ? "selected-true" : "";
+            let clsF = val === 0 ? "selected-false" : "";
+            let clickT = isLocked ? "" : `onclick="selectTF('${qData.id}', '${letter}', 1)"`;
+            let clickF = isLocked ? "" : `onclick="selectTF('${qData.id}', '${letter}', 0)"`;
+            
+            html += `
+                <div class="tf-statement" style="${isLocked ? 'opacity:0.6;' : ''}">
+                    <div class="tf-text"><strong>${letter}.</strong> ${fmt(st.s)}</div>
+                    <div class="tf-controls">
+                        <div class="tf-btn ${clsT}" ${clickT} style="${isLocked ? 'cursor:not-allowed;' : ''}">ĐÚNG</div>
+                        <div class="tf-btn ${clsF}" ${clickF} style="${isLocked ? 'cursor:not-allowed;' : ''}">SAI</div>
+                    </div>
+                </div>`;
+        });
+    }
+    else if (p === 3) {
+        let savedAns = gameState.answers[qData.id] || "";
+        let disabledAttr = isLocked ? "disabled" : "";
+        let styleAttr = isLocked ? "cursor:not-allowed; background:#f3f4f6;" : "";
+        html += `<input type="text" class="sa-input" id="sa_input_${qData.id}" placeholder="Nhập câu trả lời..." value="${savedAns}" onblur="saveSA('${qData.id}', this.value)" ${disabledAttr} style="${styleAttr}">`;
+    }
+    
+    container.innerHTML = html;
+    
+    // Điều hướng
+    document.getElementById('btn-prev').disabled = (gameState.currentIndex === 0);
+    
+    let btnNext = document.getElementById('btn-next');
+    let btnSubmit = document.getElementById('btn-submit');
+    
+    if (gameState.currentIndex === qArray.length - 1) {
+        if (gameState.currentOrderIndex < 2) {
+            btnNext.innerText = "Chuyển Phần ➡️";
+            btnNext.onclick = () => { 
+                gameState.carriedOverTime = gameState.timeLeft;
+                startPart(gameState.partOrder[gameState.currentOrderIndex + 1]); 
+            };
+            btnSubmit.style.display = "none";
+        } else {
+            btnNext.style.display = "none";
+            btnSubmit.style.display = "inline-block";
+        }
+    } else {
+        btnNext.style.display = "inline-block";
+        btnNext.innerText = "Câu tiếp ➡️";
+        btnNext.onclick = () => { navigate(1); };
+        btnSubmit.style.display = "none";
+    }
+}
+
+// Xử lý chọn đáp án
+function selectMCQ(qId, val, labelEl) {
+    gameState.answers[qId] = val;
+    let labels = document.querySelectorAll('.option-label');
+    labels.forEach(l => l.classList.remove('selected'));
+    labelEl.classList.add('selected');
+}
+
+function selectTF(qId, letter, val) {
+    gameState.answers[qId][letter] = val;
+    renderQuestion(); 
+}
+
+function saveSA(qId, val) {
+    gameState.answers[qId] = val.trim();
+}
+
+function toggleFlag() {
+    let p = gameState.currentPart;
+    let qId = gameState.testData['p' + p][gameState.currentIndex].id;
+    gameState.flags[qId] = !gameState.flags[qId];
+    renderQuestion();
+}
+
+function navigate(dir) {
+    gameState.currentIndex += dir;
+    renderQuestion();
+}
+
+// Nộp bài
+function showSubmitConfirm() {
+    let p2Data = gameState.testData.p2;
+    let missingTF = false;
+    for(let q of p2Data) {
+        let ans = gameState.answers[q.id];
+        if(!ans || Object.keys(ans).length < 4) missingTF = true;
+    }
+    
+    if(missingTF) {
+        document.getElementById('missing-warning').style.display = 'block';
+    } else {
+        document.getElementById('missing-warning').style.display = 'none';
+    }
+    
+    document.getElementById('submit-modal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('submit-modal').style.display = 'none';
+}
+
+function forceSubmit() {
+    closeModal();
+    if(gameState.timerInterval) clearInterval(gameState.timerInterval);
+    calculateScore();
+}
+
+// Chấm điểm và gửi dữ liệu lên Google Sheets
+function stdVal(v) {
+    if(!v) return "";
+    return v.toString().replace(/,/g, '.').trim();
+}
+
+function calculateScore() {
+    let scoreP1 = 0, scoreP2 = 0, scoreP3 = 0;
+    let emptyCount = 0, wrongCount = 0;
+    
+    // P1: 18 câu * 0.25đ = 4.5đ
+    gameState.testData.p1.forEach(q => {
+        let userAns = gameState.answers[q.id];
+        let correctOpt = q.options.find(o => o.isCorrect).text;
+        if (!userAns) emptyCount++;
+        else if (userAns === correctOpt) scoreP1 += 0.25;
+        else wrongCount++;
+    });
+    
+    // P2: 4 câu * 1.0đ = 4.0đ
+    gameState.testData.p2.forEach(q => {
+        let ans = gameState.answers[q.id] || {};
+        let correctC = 0, answered = 0;
+        ['a','b','c','d'].forEach((l, i) => {
+            if(ans[l] !== undefined) {
+                answered++;
+                if(ans[l] === q.statements[i].a) correctC++;
+            }
+        });
+        if(answered < 4) emptyCount++;
+        if(answered === 4 && correctC < 4) wrongCount++;
+        
+        if(correctC === 1) scoreP2 += 0.10;
+        if(correctC === 2) scoreP2 += 0.25;
+        if(correctC === 3) scoreP2 += 0.50;
+        if(correctC === 4) scoreP2 += 1.00;
+    });
+    
+    // P3: 6 câu * 0.25đ = 1.5đ
+    gameState.testData.p3.forEach(q => {
+        let userAns = gameState.answers[q.id];
+        if(!userAns) emptyCount++;
+        else if (stdVal(userAns) === stdVal(q.correct)) scoreP3 += 0.25;
+        else wrongCount++;
+    });
+    
+    let totalScore = scoreP1 + scoreP2 + scoreP3;
+    
+    // Giao diện kết quả
+    document.getElementById('screen-test').classList.remove('active');
+    document.getElementById('screen-result').classList.add('active');
+    
+    document.getElementById('res-name').innerText = gameState.name;
+    document.getElementById('res-class').innerText = gameState.className;
+    document.getElementById('res-total-score').innerText = totalScore.toFixed(2).replace('.', ',');
+    
+    document.getElementById('res-p1').innerText = scoreP1.toFixed(2);
+    document.getElementById('res-p2').innerText = scoreP2.toFixed(2);
+    document.getElementById('res-p3').innerText = scoreP3.toFixed(2);
+    
+    document.getElementById('res-empty').innerText = emptyCount;
+    document.getElementById('res-wrong').innerText = wrongCount;
+
+    // GỬI LÊN GOOGLE SHEETS BẰNG FETCH (NO-CORS)
+    let payload = {
+        name: gameState.name,
+        className: gameState.className,
+        totalScore: totalScore.toFixed(2).replace('.', ','),
+        p1: scoreP1.toFixed(2).replace('.', ','),
+        p2: scoreP2.toFixed(2).replace('.', ','),
+        p3: scoreP3.toFixed(2).replace('.', ',')
+    };
+
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', 
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+    }).catch(err => console.error("Lỗi gửi dữ liệu:", err));
+}
+
+// Xem lại câu sai
+function showReview() {
+    document.getElementById('screen-result').classList.remove('active');
+    document.getElementById('screen-review').classList.add('active');
+    
+    let rc = document.getElementById('review-container');
+    let html = "";
+    
+    // P1
+    gameState.testData.p1.forEach((q, i) => {
+        let uAns = gameState.answers[q.id];
+        let cOpt = q.options.find(o => o.isCorrect).text;
+        if(uAns !== cOpt) {
+            let statCls = !uAns ? "unanswered" : "";
+            html += `<div class="review-item ${statCls}">
+                <div style="font-weight:bold">Câu ${i+1} (P1):</div>
+                <div>${fmt(q.text)}</div>
+                <div class="wrong-ans">Bạn chọn: ${uAns ? fmt(uAns) : "Bỏ trống (Hoặc bị khóa)"}</div>
+                <div class="correct-ans">Đáp án đúng: ${fmt(cOpt)}</div>
+            </div>`;
+        }
+    });
+    
+    // P2
+    gameState.testData.p2.forEach((q, i) => {
+        let ans = gameState.answers[q.id] || {};
+        let cCount = 0;
+        ['a','b','c','d'].forEach((l, idx) => { if(ans[l] === q.statements[idx].a) cCount++; });
+        if(cCount < 4) {
+            html += `<div class="review-item">
+                <div style="font-weight:bold">Câu ${i+1} (P2):</div>
+                <div>${fmt(q.text)}</div>`;
+            ['a','b','c','d'].forEach((l, idx) => {
+                let st = q.statements[idx];
+                let uV = ans[l] === undefined ? "Trống" : (ans[l] ? "Đúng" : "Sai");
+                let cV = st.a ? "Đúng" : "Sai";
+                let color = uV === cV ? "var(--success)" : "var(--danger)";
+                html += `<div style="margin-left: 15px; margin-top:5px; padding-left:5px; border-left:3px solid ${color}">
+                    ${l}. ${fmt(st.s)}<br>
+                    <span style="color:${color}; font-size:0.9rem">Chọn: ${uV} | Chuẩn: ${cV}</span>
+                </div>`;
+            });
+            html += `</div>`;
+        }
+    });
+    
+    // P3
+    gameState.testData.p3.forEach((q, i) => {
+        let uAns = gameState.answers[q.id];
+        if(stdVal(uAns) !== stdVal(q.correct)) {
+            let statCls = !uAns ? "unanswered" : "";
+            html += `<div class="review-item ${statCls}">
+                <div style="font-weight:bold">Câu ${i+1} (P3):</div>
+                <div>${fmt(q.text)}</div>
+                <div class="wrong-ans">Nhập: ${uAns ? uAns : "Bỏ trống (Hoặc bị khóa)"}</div>
+                <div class="correct-ans">Đáp án: ${q.correct}</div>
+            </div>`;
+        }
+    });
+    
+    if(html === "") html = "<div style='text-align:center; color:var(--success); font-weight:bold;'>Tuyệt vời! Bạn đã trả lời đúng tất cả các câu hỏi.</div>";
+    
+    rc.innerHTML = html;
+}
+
+// =====================================================
+// CHỐNG GIAN LẬN: KHÓA CÂU HỎI KHI CHUYỂN TAB
+// =====================================================
+document.addEventListener("visibilitychange", function() {
+    let testScreen = document.getElementById('screen-test');
+    let isTestActive = testScreen.classList.contains('active');
+    let isModalOpen = document.getElementById('submit-modal').style.display === 'flex';
+    
+    if (document.hidden && (isTestActive || isModalOpen)) {
+        let p = gameState.currentPart;
+        let qArray = gameState.testData['p' + p];
+        let currentQId = qArray[gameState.currentIndex].id;
+        
+        // Đưa ID câu vào danh sách đen nếu chưa có
+        if (!gameState.lockedQuestions.includes(currentQId)) {
+            gameState.lockedQuestions.push(currentQId);
+        }
+        
+        if (isModalOpen) closeModal();
+        
+        alert("⛔ CẢNH BÁO VI PHẠM: Bạn đã chuyển tab hoặc rời khỏi trang!\nCâu hỏi hiện tại đã bị khóa và tính điểm 0.");
+        
+        // Tự động chuyển câu
+        if (gameState.currentIndex < qArray.length - 1) {
+            navigate(1);
+        } else {
+            // Nếu thoát tab ở câu cuối cùng của phần thi
+            if (gameState.currentOrderIndex < 2) {
+                alert("Bạn đang ở câu cuối cùng. Hệ thống sẽ tự động chuyển sang phần thi tiếp theo!");
+                gameState.carriedOverTime = gameState.timeLeft;
+                startPart(gameState.partOrder[gameState.currentOrderIndex + 1]);
+            } else {
+                // Nếu ở câu cuối cùng của toàn bài thi -> Nộp bài
+                if(gameState.timerInterval) clearInterval(gameState.timerInterval);
+                calculateScore();
+            }
+        }
+    }
+});
+</script>
+</body>
+</html>
